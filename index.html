@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Bhaskara</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-700">
+        <h1 class="text-2xl font-bold text-center mb-2 text-indigo-400">Fórmula de Bhaskara</h1>
+        <p class="text-slate-400 text-sm text-center mb-6">Ingresa los coeficientes de la ecuación cuadrática</p>
+
+        <form id="bhaskaraForm" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">Coeficiente a:</label>
+                <input type="number" id="coeff_a" step="any" required 
+                    class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Coeficiente b:</label>
+                <input type="number" id="coeff_b" step="any" required 
+                    class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Coeficiente c:</label>
+                <input type="number" id="coeff_c" step="any" required 
+                    class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500">
+            </div>
+            <button type="submit" 
+                class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-2.5 px-4 rounded-lg transition duration-200 mt-2 cursor-pointer shadow-lg shadow-indigo-600/20">
+                Calcular Raíces
+            </button>
+        </form>
+
+        <div id="resultadoBox" class="hidden mt-6 p-4 rounded-xl border">
+            <h3 id="resultadoTitulo" class="font-bold mb-1">Resultado:</h3>
+            <div id="resultadoContenido" class="text-sm space-y-1"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('bhaskaraForm').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Evitar que la página se recargue
+
+            // Obtener los valores de los inputs
+            const a = document.getElementById('coeff_a').value;
+            const b = document.getElementById('coeff_b').value;
+            const c = document.getElementById('coeff_c').value;
+
+            const resultadoBox = document.getElementById('resultadoBox');
+            const resultadoTitulo = document.getElementById('resultadoTitulo');
+            const resultadoContenido = document.getElementById('resultadoContenido');
+
+            // URL de tu servidor de Spring Boot (Cámbiarlo a 8085 si cambiaste el puerto en application.properties)
+            const url = `http://localhost:8080/api/bhaskara?a=${a}&b=${b}&c=${c}`;
+
+            try {
+                // Hacer la petición GET a la API
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Mostrar la caja de resultados
+                resultadoBox.classList.remove('hidden');
+
+                if (data.error) {
+                    // Si la API devolvió un error de validación matemática
+                    resultadoBox.className = "mt-6 p-4 rounded-xl border border-red-500 bg-red-500/10 text-red-400";
+                    resultadoTitulo.innerText = "Error Matemático";
+                    resultadoContenido.innerText = data.error;
+                } else {
+                    // Si todo salió bien y devolvió las raíces x1 y x2
+                    resultadoBox.className = "mt-6 p-4 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400";
+                    resultadoTitulo.innerText = "¡Cálculo Exitoso!";
+                    resultadoContenido.innerHTML = `
+                        <p><strong>x₁ =</strong> ${data.x1}</p>
+                        <p><strong>x₂ =</strong> ${data.x2}</p>
+                    `;
+                }
+            } catch (error) {
+                // Si el backend está apagado o no se puede conectar
+                resultadoBox.classList.remove('hidden');
+                resultadoBox.className = "mt-6 p-4 rounded-xl border border-amber-500 bg-amber-500/10 text-amber-400";
+                resultadoTitulo.innerText = "Error de Conexión";
+                resultadoContenido.innerText = "No se pudo conectar con el Web Service. Verifica que Spring Boot esté encendido.";
+            }
+        });
+    </script>
+</body>
+</html>
